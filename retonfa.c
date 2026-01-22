@@ -1,69 +1,72 @@
-#include<stdio.h>
-#include<string.h>
-int main()
-{
-	char reg[20]; int q[20][3],i=0,j=1,len,a,b;
-	for(a=0;a<20;a++) for(b=0;b<3;b++) q[a][b]=0;
-	scanf("%s",reg);
-	printf("Given regular expression: %s\n",reg);
-	len=strlen(reg);
-	while(i<len)
-	{
-		if(reg[i]=='a'&&reg[i+1]!='|'&&reg[i+1]!='*') { q[j][0]=j+1; j++; }
-		if(reg[i]=='b'&&reg[i+1]!='|'&&reg[i+1]!='*') {	q[j][1]=j+1; j++;	}
-		if(reg[i]=='e'&&reg[i+1]!='|'&&reg[i+1]!='*') {	q[j][2]=j+1; j++;	}
-		if(reg[i]=='a'&&reg[i+1]=='|'&&reg[i+2]=='b') 
-		{ 
-		  q[j][2]=((j+1)*10)+(j+3); j++; 
-		  q[j][0]=j+1; j++;
-			q[j][2]=j+3; j++;
-			q[j][1]=j+1; j++;
-			q[j][2]=j+1; j++;
-			i=i+2;
-		}
-		if(reg[i]=='b'&&reg[i+1]=='|'&&reg[i+2]=='a')
-		{
-			q[j][2]=((j+1)*10)+(j+3); j++;
-			q[j][1]=j+1; j++;
-			q[j][2]=j+3; j++;
-			q[j][0]=j+1; j++;
-			q[j][2]=j+1; j++;
-			i=i+2;
-		}
-		if(reg[i]=='a'&&reg[i+1]=='*')
-		{
-			q[j][2]=((j+1)*10)+(j+3); j++;
-			q[j][0]=j+1; j++;
-			q[j][2]=((j+1)*10)+(j-1); j++;
-		}
-		if(reg[i]=='b'&&reg[i+1]=='*')
-		{
-			q[j][2]=((j+1)*10)+(j+3); j++;
-			q[j][1]=j+1; j++;
-			q[j][2]=((j+1)*10)+(j-1); j++;
-		}
-		if(reg[i]==')'&&reg[i+1]=='*')
-		{
-			q[0][2]=((j+1)*10)+1;
-			q[j][2]=((j+1)*10)+1;
-			j++;
-		}
-		i++;
-	}
-	printf("\n\tTransition Table \n");
-	printf("_____________________________________\n");
-	printf("Current State |\tInput |\tNext State");
-	printf("\n_____________________________________\n");
-	for(i=0;i<=j;i++)
-	{
-		if(q[i][0]!=0) printf("\n  q[%d]\t      |   a   |  q[%d]",i,q[i][0]);
-		if(q[i][1]!=0) printf("\n  q[%d]\t      |   b   |  q[%d]",i,q[i][1]);
-		if(q[i][2]!=0) 
-		{
-			if(q[i][2]<10) printf("\n  q[%d]\t      |   e   |  q[%d]",i,q[i][2]);
-			else printf("\n  q[%d]\t      |   e   |  q[%d] , q[%d]",i,q[i][2]/10,q[i][2]%10);
-		}
-	}
-	printf("\n_____________________________________\n");
-	return 0;
+#include <stdio.h>
+#include <string.h>
+#include <ctype.h>
+
+int main() {
+    char re[20], t[10][10];
+    int i, j, n, r = 0;
+
+    printf("\nSIMULATION OF NFA\n*****************\n");
+
+    for (i = 0; i < 10; i++)
+        for (j = 0; j < 10; j++)
+            t[i][j] = ' ';
+
+    printf("\nEnter a regular expression: ");
+    scanf("%s", re);
+    n = strlen(re);
+
+    for (i = 0; i < n; i++) {
+        switch (re[i]) {
+
+        case '|':
+            t[r][r+1] = 'E';
+            t[r+1][r+2] = re[i-1];
+            t[r+2][r+5] = 'E';
+            t[r][r+3] = 'E';
+            t[r+3][r+4] = re[i+1];
+            t[r+4][r+5] = 'E';
+            r += 5;
+            break;
+
+        case '*':
+            t[r-1][r] = 'E';
+            t[r][r+1] = 'E';
+            t[r][r+3] = 'E';
+            t[r+1][r+2] = re[i-1];
+            t[r+2][r+1] = 'E';
+            t[r+2][r+3] = 'E';
+            r += 3;
+            break;
+
+        case '+':
+            t[r][r+1] = re[i-1];
+            t[r+1][r] = 'E';
+            r++;
+            break;
+
+        default:
+            if (isalpha(re[i])) {
+                t[r][r+1] = re[i];
+                r++;
+            }
+        }
+    }
+
+    printf("\n ");
+    for (i = 0; i <= r; i++)
+        printf("%d ", i);
+
+    printf("\n--------------------------------\n");
+
+    for (i = 0; i <= r; i++) {
+        for (j = 0; j <= r; j++)
+            printf("%c ", t[i][j]);
+        printf("| %d\n", i);
+    }
+
+    printf("\nStart state: 0");
+    printf("\nFinal state: %d\n", r);
+
+    return 0;
 }
